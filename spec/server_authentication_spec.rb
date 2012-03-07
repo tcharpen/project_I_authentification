@@ -1,4 +1,3 @@
-require 'sinatra'
 require 'rack/test'
 $:.unshift File.join(File.dirname(__FILE__),'..','app')
 require 'server_authentication'
@@ -12,15 +11,13 @@ describe 'server_authentication' do
 
   describe 'registration' do
 
-    context 'On request Get /session/register' do
-
-      it 'should return a form' do
-        get '/session/register'
-        last_request.env[:REQUEST_METHOD].should be 'POST'
+    context 'Client send a post without a login or a password at url /registered' do
+      it 'should redirect to /session/register' do
+        post '/registered'
+        last_response.status.should be 302
       end
-      
     end
-
+    
   end
 
 end
