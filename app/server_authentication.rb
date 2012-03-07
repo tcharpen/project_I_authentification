@@ -1,10 +1,11 @@
 require 'sinatra'
 
+#There is no database to store users at the moment
+#There is no encryption for the user password at the moment
+
 set :user_table, {}
 
 helpers do
-  #We just use a simple global variable to store user accounts
-  #A true db will come after
   def find_user(user)
     settings.user_table[user]
   end
@@ -17,8 +18,7 @@ get '/register' do
   erb :register
 end
 
-post '/registered' do
-  
+post '/registered' do  
   if params['login'] && params['password']
     if find_user(params['login'])
       redirect '/register'
