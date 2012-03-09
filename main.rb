@@ -7,7 +7,8 @@ require_relative 'lib/checker.rb'
 ################
 
 get '/register' do
-  @target = "\"/registered\"" 
+  @title = 'Registration'
+  @target = '"/registered"'
   erb :form
 end
 
@@ -17,6 +18,7 @@ post '/registered' do
     user.save
     redirect '/authentication'
   else
+    @title = 'Registration'
     @target = "\"/registered\"" 
     erb :form
   end
@@ -27,8 +29,9 @@ end
 ##################
 
 get '/authentication' do
-    @target = "\"/authenticated\"" 
-    erb :form
+  @title = 'Authentication'
+  @target = '"/authenticated"'
+  erb :form
 end
 
 post '/authenticated' do
@@ -36,7 +39,8 @@ post '/authenticated' do
     response.set_cookie('session_id','un_cookie')
     redirect '/protected'
   else
-    @target = "\"/authentication\"" 
+    @title = 'Authentication'
+    @target = "\"/authenticated\"" 
     erb :form
   end
 end

@@ -9,7 +9,7 @@ describe 'Server' do
       describe 'get /register' do
         it 'should return a form to users info which' do
           get '/register'
-          last_response.body.should match %r{<form.*action="/registered" method="post".*/>}
+          last_response.body.should match %r{<form action="/registered" method="post"/>}
         end
       end
     end
@@ -42,7 +42,7 @@ describe 'Server' do
       describe 'post /registered' do
         it 'should return a form to post user info' do
           post '/registered'
-          last_response.body.should match %r{<form.*action="/registered" method="post".*/>}
+          last_response.body.should match %r{<form action="/registered" method="post"/>}
         end
       end
     end
@@ -55,7 +55,7 @@ describe 'Server' do
       describe 'get /authentication' do
         it 'should return a form to post user info' do
           get '/authentication'
-          last_response.body.should match %r{<form.*action="/authenticated" method="post".*/>}
+          last_response.body.should match %r{<form action="/authenticated" method="post"/>}
         end
       end
     end
@@ -83,7 +83,7 @@ describe 'Server' do
       describe 'post /authenticated' do
         it 'should return a form to post user info' do
           post '/authenticated'
-          last_response.body.should match %r{<form.*action="/authentication" method="post".*/>}
+          last_response.body.should match %r{<form action="/authenticated" method="post"/>}
         end
       end
     end
