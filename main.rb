@@ -10,7 +10,7 @@ require_relative 'lib/session_manager.rb'
 set :session_manager, SessionManager.new('server_auth_id')
 
 get '/protected' do
-  if settings.session_manager.check_authenticity(env)
+  if settings.session_manager.session(env)
     'You are log in'
   else
     @title = 'Authentication'
