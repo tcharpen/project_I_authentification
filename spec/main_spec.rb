@@ -7,7 +7,7 @@ describe 'Server' do
     end
     context 'in all cases' do
       describe 'get /register' do
-        it 'should return a form to users info which' do
+        it 'should return a form to post users info' do
           get '/register'
           last_response.body.should match %r{<form action="/registered" method="post"/>}
         end
@@ -22,16 +22,16 @@ describe 'Server' do
           User.should_receive(:new).with('toto')
           post '/registered', @params
         end
-        it 'should redirect to /authentication' do
-          post '/registered', @params
-          last_response.status.should be 302
-          last_response.header['Location'].should match %r{http://[^/]*/authentication}
-        end
         it 'should save the user' do
           user = double('user')
           User.should_receive(:new).with('toto').and_return(user)
           user.should_receive(:save)
           post '/registered', @params
+        end
+        it 'should redirect to /authentication' do
+          post '/registered', @params
+          last_response.status.should be 302
+          last_response.header['Location'].should match %r{http://[^/]*/authentication}
         end
       end
     end
@@ -62,12 +62,12 @@ describe 'Server' do
     context 'in good cases' do
       before do
         Checker.stub(:check_authentication_params){true}
+        app.settings.session_manager.stub(:create_session)
       end
       describe 'post /authenticated' do
-        it 'should send a session_id cookie' do
+        it 'should create a session' do
           post '/authenticated', @params
-          last_response.header['Set-Cookie'].should_not be_nil
-          last_response.header['Set-Cookie'].should match %r{.*session_id=.+}
+          app.settings.session_manager.should_receive(:create_session)
         end
         it 'should redirect to /protected' do
           post '/authenticated', @params
@@ -83,6 +83,29 @@ describe 'Server' do
       describe 'post /authenticated' do
         it 'should return a form to post user info' do
           post '/authenticated'
+          last_response.body.should match %r{<form action="/authenticated" method="post"/>}
+        end
+      end
+    end
+  end
+  describe 'Acces to protected zone' do
+    describe 'get /protected' do
+      context 'the user is authenticated' do
+        before do
+          app.settings.session_manager.stub(:check_authenticity){true}
+        end
+        it 'should return a welcome sentence' do
+          get '/protected'
+          last_response.status.should == 200
+          last_response.body.should == 'You are log in'
+        end
+      end
+      context 'the user is not authenticated' do
+        before do
+          app.settings.session_manager.stub(:check_authenticity){false}
+        end
+        it 'should return a form to post users info' do
+          get '/authentication'
           last_response.body.should match %r{<form action="/authenticated" method="post"/>}
         end
       end

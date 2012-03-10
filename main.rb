@@ -1,6 +1,23 @@
 require 'sinatra'
 require_relative 'lib/user.rb'
 require_relative 'lib/checker.rb'
+require_relative 'lib/session_manager.rb'
+
+##################
+##Protected zone##
+##################
+
+set :session_manager, SessionManager.new('server_auth_id')
+
+get '/protected' do
+  if settings.session_manager.check_authenticity(env)
+    'You are log in'
+  else
+    @title = 'Authentication'
+    @target = '"/authenticated"'
+    erb :form
+  end    
+end
 
 ################
 ##Registration##
@@ -34,9 +51,10 @@ get '/authentication' do
   erb :form
 end
 
+
 post '/authenticated' do
   if Checker.check_authentication_params(params)
-    response.set_cookie('session_id','un_cookie')
+    settings.session_manager.create_session
     redirect '/protected'
   else
     @title = 'Authentication'
