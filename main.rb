@@ -13,6 +13,7 @@ get '/protected' do
   if settings.session_manager.session(env)
     'You are log in'
   else
+    @button = '"Log in"'
     @title = 'Authentication'
     @target = '"/authenticated"'
     erb :form
@@ -24,6 +25,7 @@ end
 ################
 
 get '/register' do
+  @button = '"Register"'
   @title = 'Registration'
   @target = '"/registered"'
   erb :form
@@ -35,6 +37,7 @@ post '/registered' do
     user.save
     redirect '/authentication'
   else
+    @button = '"Register"'
     @title = 'Registration'
     @target = "\"/registered\"" 
     erb :form
@@ -46,17 +49,18 @@ end
 ##################
 
 get '/authentication' do
+  @button = '"Log in"'
   @title = 'Authentication'
   @target = '"/authenticated"'
   erb :form
 end
-
 
 post '/authenticated' do
   if Checker.check_authentication_params(params)
     settings.session_manager.create_session
     redirect '/protected'
   else
+    @button = '"Log in"'
     @title = 'Authentication'
     @target = "\"/authenticated\"" 
     erb :form

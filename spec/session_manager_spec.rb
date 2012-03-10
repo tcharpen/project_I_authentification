@@ -12,7 +12,7 @@ describe SessionManager do
     end
   end
   describe 'session' do
-    context 'The Rack::Request contains a cookie previously set by create_session' do
+    context 'The SessionManager instance already knows the cookie used in the request object' do
       before do
         response = Rack::Response.new
         subject.create_session(response)
@@ -24,7 +24,7 @@ describe SessionManager do
         subject.session(@request).should be_true
       end
     end
-    context 'The Rack::Request does not contain a cookie previously set by create_session' do
+    context 'the SessionManager instance does not know the cookie used in the request object' do
       before do
         @request = double('rack_request')
         @request.stub(:cookies) { {@session_id => 'random_number'} }
@@ -35,11 +35,16 @@ describe SessionManager do
     end
   end
   describe 'create_session' do
-    it 'should set a session_id cookie to a Rack::Response' do
+    it 'should set a session_id cookie to response' do
       response = Rack::Response.new
       subject.create_session(response)
       response.header['Set-Cookie'].should_not be_nil
       response.header['Set-Cookie'].should match %r{.*#{@session_id}=.+}
      end
+  end
+  describe 'generate_cookie_id' do
+    it 'should always return a free id' do
+      #I don't know how to do that
+    end
   end
 end

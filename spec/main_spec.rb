@@ -7,7 +7,7 @@ describe 'Server' do
     end
     context 'in all cases' do
       describe 'get /register' do
-        it 'should return a form to post users info' do
+        it 'should return a form to allow users to post registration info' do
           get '/register'
           last_response.body.should match %r{<form action="/registered" method="post"/>}
         end
@@ -40,7 +40,7 @@ describe 'Server' do
         Checker.stub(:check_registration_params){false}
       end
       describe 'post /registered' do
-        it 'should return a form to post user info' do
+        it 'should return a form to allow users to post registration info' do
           post '/registered'
           last_response.body.should match %r{<form action="/registered" method="post"/>}
         end
@@ -53,7 +53,7 @@ describe 'Server' do
     end
     context 'in all cases' do
       describe 'get /authentication' do
-        it 'should return a form to post user info' do
+        it 'should return a form to allow users to post authentication info' do
           get '/authentication'
           last_response.body.should match %r{<form action="/authenticated" method="post"/>}
         end
@@ -81,33 +81,31 @@ describe 'Server' do
         Checker.stub(:check_authentication_params){false}
       end
       describe 'post /authenticated' do
-        it 'should return a form to post user info' do
+        it 'should return a form to allow users to post authentication info' do
           post '/authenticated'
           last_response.body.should match %r{<form action="/authenticated" method="post"/>}
         end
       end
     end
   end
-  describe 'Acces to protected zone' do
-    describe 'get /protected' do
-      context 'the user is authenticated' do
-        before do
-          app.settings.session_manager.stub(:session){true}
-        end
-        it 'should return a welcome sentence' do
-          get '/protected'
-          last_response.status.should == 200
-          last_response.body.should == 'You are log in'
-        end
+  describe 'get /protected' do
+    context 'if the user is authenticated' do
+      before do
+        app.settings.session_manager.stub(:session){true}
       end
-      context 'the user is not authenticated' do
-        before do
-          app.settings.session_manager.stub(:session){false}
-        end
-        it 'should return a form to post users info' do
-          get '/authentication'
-          last_response.body.should match %r{<form action="/authenticated" method="post"/>}
-        end
+      it 'should return a welcome sentence' do
+        get '/protected'
+        last_response.status.should == 200
+        last_response.body.should == 'You are log in'
+      end
+    end
+    context 'if the user is not authenticated' do
+      before do
+        app.settings.session_manager.stub(:session){false}
+      end
+      it 'should return a form to allow users to post authentication info' do
+        get '/authentication'
+        last_response.body.should match %r{<form action="/authenticated" method="post"/>}
       end
     end
   end
