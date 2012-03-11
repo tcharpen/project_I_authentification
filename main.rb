@@ -33,7 +33,7 @@ end
 
 
 post '/registered' do
-  user = User.new( :login => params['login'] )
+  user = User.new( :login => params['login'], :password => params['password'] )
   if user.save
     redirect '/authentication'
   else
@@ -56,7 +56,7 @@ get '/authentication' do
 end
 
 post '/authenticated' do
-  if User.find_user(params['login'])
+  if User.find_user(params['login'],params['password'])
     settings.session_manager.create_session(response)
     redirect '/protected'
   else
