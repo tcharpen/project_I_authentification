@@ -1,6 +1,7 @@
 require 'sinatra'
 require_relative 'lib/user.rb'
 require_relative 'lib/session_manager.rb'
+require_relative 'database.rb'
 
 ##################
 ##Protected zone##
@@ -32,7 +33,7 @@ end
 
 
 post '/registered' do
-  user = User.new(params)
+  user = User.new( :login => params['login'] )
   if user.save
     redirect '/authentication'
   else
@@ -55,7 +56,7 @@ get '/authentication' do
 end
 
 post '/authenticated' do
-  if User.where('login = ?', params['login'])
+  if User.find_user(params['login'])
     settings.session_manager.create_session(response)
     redirect '/protected'
   else

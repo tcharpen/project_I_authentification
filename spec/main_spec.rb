@@ -24,7 +24,7 @@ describe 'Server' do
           post '/registered', @params
         end
         it 'should save the user' do
-          User.should_receive(:new).with(@params).and_return(@user)
+          User.should_receive(:new).with( :login => @params['login'] ).and_return(@user)
           @user.should_receive(:save)
           post '/registered', @params
         end
@@ -38,7 +38,7 @@ describe 'Server' do
     context 'in bad cases' do
       before do
         @user = double('user')
-        @user.stub(:save){false}#Weird behaviour when set to true
+        @user.stub(:save){false}
         User.stub(:new){@user}
       end
       describe 'post /registered' do
@@ -63,12 +63,12 @@ describe 'Server' do
     end
     context 'in good cases' do
       before do
-        User.stub(:where){true}
+        User.stub(:find_user){true}
         app.settings.session_manager.stub(:create_session)
       end
       describe 'post /authenticated' do
         it 'should create a session' do
-          User.should_receive(:where)
+          User.should_receive(:find_user)
           app.settings.session_manager.should_receive(:create_session)
           post '/authenticated', @params
          end
@@ -81,11 +81,11 @@ describe 'Server' do
     end
     context 'in bad cases' do
       before do
-        User.stub(:where){nil}
+        User.stub(:find_user){false}
       end
       describe 'post /authenticated' do
         it 'should return a form to allow users to post authentication info' do
-          User.should_receive(:where)
+          User.should_receive(:find_user)
           post '/authenticated'
           last_response.body.should match %r{<form action="/authenticated" method="post"/>}
         end
