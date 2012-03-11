@@ -31,10 +31,10 @@ get '/register' do
   erb :form
 end
 
+
 post '/registered' do
-  if Checker.check_registration_params(params)
-    user = User.new(params['login'])
-    user.save
+  user = User.new(params)
+  if user.save
     redirect '/authentication'
   else
     @button = '"Register"'
@@ -56,7 +56,7 @@ get '/authentication' do
 end
 
 post '/authenticated' do
-  if Checker.check_authentication_params(params)
+  if User.where('login = ?', params['login'])
     settings.session_manager.create_session
     redirect '/protected'
   else
