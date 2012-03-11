@@ -5,5 +5,7 @@ gem 'guard'
 gem 'guard-rspec'
 gem 'rspec'
 gem 'rack-test'
+gem 'activerecord'
+gem 'sqlite3'
 
 

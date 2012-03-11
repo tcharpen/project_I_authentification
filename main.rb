@@ -1,6 +1,5 @@
 require 'sinatra'
 require_relative 'lib/user.rb'
-require_relative 'lib/checker.rb'
 require_relative 'lib/session_manager.rb'
 
 ##################
@@ -10,7 +9,7 @@ require_relative 'lib/session_manager.rb'
 set :session_manager, SessionManager.new('server_auth_id')
 
 get '/protected' do
-  if settings.session_manager.session(env)
+  if settings.session_manager.session(request)
     'You are log in'
   else
     @button = '"Log in"'
@@ -57,7 +56,7 @@ end
 
 post '/authenticated' do
   if User.where('login = ?', params['login'])
-    settings.session_manager.create_session
+    settings.session_manager.create_session(response)
     redirect '/protected'
   else
     @button = '"Log in"'

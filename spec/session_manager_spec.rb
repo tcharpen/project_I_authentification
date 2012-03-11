@@ -12,7 +12,7 @@ describe SessionManager do
     end
   end
   describe 'session' do
-    context 'The SessionManager instance already knows the cookie used in the request object' do
+    context 'if the SessionManager instance already knows the cookie used in the request object' do
       before do
         response = Rack::Response.new
         subject.create_session(response)
@@ -24,7 +24,7 @@ describe SessionManager do
         subject.session(@request).should be_true
       end
     end
-    context 'the SessionManager instance does not know the cookie used in the request object' do
+    context 'if the SessionManager instance does not know the cookie used in the request object' do
       before do
         @request = double('rack_request')
         @request.stub(:cookies) { {@session_id => 'random_number'} }

@@ -63,7 +63,7 @@ describe 'Server' do
     end
     context 'in good cases' do
       before do
-        User.stub(:where){User.new}
+        User.stub(:where){true}
         app.settings.session_manager.stub(:create_session)
       end
       describe 'post /authenticated' do

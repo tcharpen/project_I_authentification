@@ -40,5 +40,3 @@ class SessionManager
     @pool[sid.to_s]
   end
 end
-
-
