@@ -1,5 +1,5 @@
 $: << File.dirname(__FILE__)
-require 'database'
+require_relative 'database.rb'
 
 ActiveRecord::Migration.verbose = true
 ActiveRecord::Migrator.migrate "db/migrate"

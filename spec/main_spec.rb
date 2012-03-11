@@ -1,10 +1,10 @@
 require_relative 'spec_helper'
 
 describe 'Server' do
+  before do
+    @params = {'login'=>'toto','password'=>'1234'}
+  end
   describe 'Registration' do
-    before do
-      @params = {'login'=>'toto'}
-    end
     context 'in all cases' do
       describe 'get /register' do
         it 'should return a form to allow users to post registration info' do
@@ -24,7 +24,7 @@ describe 'Server' do
           post '/registered', @params
         end
         it 'should save the user' do
-          User.should_receive(:new).with( :login => @params['login'] ).and_return(@user)
+          User.should_receive(:new).with( :login => @params['login'], :password => @params['password'] ).and_return(@user)
           @user.should_receive(:save)
           post '/registered', @params
         end
@@ -50,9 +50,6 @@ describe 'Server' do
     end
   end
   describe 'authentication' do
-    before do
-      @params = {'login' => 'toto'} 
-    end
     context 'in all cases' do
       describe 'get /authentication' do
         it 'should return a form to allow users to post authentication info' do
@@ -68,7 +65,7 @@ describe 'Server' do
       end
       describe 'post /authenticated' do
         it 'should create a session' do
-          User.should_receive(:find_user)
+          User.should_receive(:find_user).with(@params['login'],@params['password'])
           app.settings.session_manager.should_receive(:create_session)
           post '/authenticated', @params
          end
@@ -85,8 +82,8 @@ describe 'Server' do
       end
       describe 'post /authenticated' do
         it 'should return a form to allow users to post authentication info' do
-          User.should_receive(:find_user)
-          post '/authenticated'
+          User.should_receive(:find_user).with(@params['login'],@params['password'])
+          post '/authenticated', @params
           last_response.body.should match %r{<form action="/authenticated" method="post"/>}
         end
       end
