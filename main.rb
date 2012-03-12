@@ -3,6 +3,15 @@ require_relative 'lib/user.rb'
 require_relative 'lib/session_manager.rb'
 require_relative 'database.rb'
 
+
+#############
+##Home Page##
+#############
+
+get '/' do
+  erb :home_page
+end
+
 ##################
 ##Protected zone##
 ##################

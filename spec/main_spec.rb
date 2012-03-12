@@ -4,6 +4,18 @@ describe 'Server' do
   before do
     @params = {'login'=>'toto','password'=>'1234'}
   end
+  describe 'Home page' do
+    describe 'get /' do
+      it 'should return a page with a link to /register' do
+        get '/'
+        last_response.body.should match %r{.*<form action="/register" method="get">.*}
+      end
+      it 'should return a page with a link to /authentication' do
+                get '/'
+        last_response.body.should match %r{.*<form action="/authentication" method="get">.*}
+      end
+    end
+  end
   describe 'Registration' do
     context 'in all cases' do
       describe 'get /register' do
@@ -21,6 +33,7 @@ describe 'Server' do
       end
       describe 'post /registered' do
         it 'should create a user' do
+          User.should_receive(:new)
           post '/registered', @params
         end
         it 'should save the user' do
