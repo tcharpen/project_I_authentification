@@ -57,10 +57,10 @@ describe User do
       end
     end
   end
-  describe 'find_user' do
+  describe 'self.find_user' do
     context 'if parameters match with a user in the database' do
       before do
-        User.new(:login => @default_login,:password => @default_password).save.should be_true
+        User.new(:login => @default_login,:password => @default_password).save
       end
       it 'should return this user' do
         User.find_user(@default_login,@default_password).login.should == @default_login
@@ -69,6 +69,100 @@ describe User do
     context 'if parameters do not match a user in the database' do
       it 'should return false' do
         User.find_user(@default_login,@default_password).should be_false
+      end
+    end
+  end
+  describe 'admin' do
+    context 'if the user is an admin' do
+      before do
+        @user = \
+        User.new(
+                 :login => @default_login,
+                 :password => @default_password,
+                 :admin => true
+                 )
+        @user.save
+      end
+      it 'should return true' do
+        user = User.find_user(@default_login,@default_password)
+        user.admin.should be_true
+      end
+    end
+    context 'if the user is not an admin' do
+      before do
+        @user = \
+        User.new(
+                 :login => @default_login,
+                 :password => @default_password,
+                 :admin => false
+                 )
+        @user.save
+      end
+      it 'should return false' do
+        user = User.find_user(@default_login,@default_password)
+        user.admin.should be_false
+      end
+    end
+  end
+  describe 'memorize' do
+    subject do
+      User.new(:login => @default_login,:password => @default_password)
+    end
+    before do
+      @response = double('Rack::Response')
+      @response.stub(:set_cookie)
+    end
+    it 'should generate a cookie id' do
+      User.should_receive(:generate_cookie_id)
+      subject.memorize(@response)
+    end
+    it 'should store the cookie in the response' do
+      sid = double('id')
+      User.should_receive(:generate_cookie_id).and_return{sid} 
+      @response.should_receive(:set_cookie).with('s_auth_id',sid)
+      subject.memorize(@response)
+    end
+    it 'should store the cookie in the database' do
+      sid = double('id')
+      User.should_receive(:generate_cookie_id).and_return{sid} 
+      subject.should_receive(:cookie=).with(sid)
+      subject.memorize(@response)
+    end
+  end
+  describe 'self.generate_cookie_id' do
+    it 'should return an id' do
+      User.generate_cookie_id.should_not be_nil
+    end
+    it 'should return an id which is not already used' do
+      #TODO, I don't know how to do that
+    end
+  end
+  describe 'self.remember' do
+    context 'if request comes from a user previously memorized' do
+      before do
+        @sid = '1664'
+        @request = double('Rack::Request')
+        @request.stub(:cookies){ {'s_auth_id'=>@sid} }
+        @user = \
+        User.new(
+                 :login => @default_login,
+                 :password => @default_password,
+                 :cookie => @sid
+                 ).save
+      end
+      it 'should return this user' do
+        User.remember(@request).should_not be_nil
+        User.remember(@request).login.should == @default_login
+      end
+    end
+    context 'if request comes from a user not memorized' do
+      before do
+        @sid = '1664'
+        @request = double('Rack::Request')
+        @request.stub(:cookies){ {'s_auth_id'=>@sid} }
+      end
+      it 'should return nil' do
+        User.remember(@request).should be_nil
       end
     end
   end

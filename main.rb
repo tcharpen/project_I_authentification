@@ -1,8 +1,6 @@
 require 'sinatra'
 require_relative 'lib/user.rb'
-require_relative 'lib/session_manager.rb'
 require_relative 'database.rb'
-
 
 #############
 ##Home Page##
@@ -16,16 +14,17 @@ end
 ##Protected zone##
 ##################
 
-set :session_manager, SessionManager.new('server_auth_id')
-
 get '/protected' do
-  if settings.session_manager.session(request)
-    'You are log in'
-  else
+  user = User.remember(request)
+  if user.nil?
     @button = '"Log in"'
     @title = 'Authentication'
     @target = '"/authenticated"'
     erb :form
+  elsif user.admin
+    erb :admin_page
+  else
+    'You are log in'
   end    
 end
 
@@ -40,9 +39,8 @@ get '/register' do
   erb :form
 end
 
-
 post '/registered' do
-  user = User.new( :login => params['login'], :password => params['password'] )
+  user = User.new(:login => params['login'],:password => params['password'])
   if user.save
     redirect '/authentication'
   else
@@ -65,8 +63,9 @@ get '/authentication' do
 end
 
 post '/authenticated' do
-  if User.find_user(params['login'],params['password'])
-    settings.session_manager.create_session(response)
+  user = User.find_user(params['login'],params['password'])
+  if user
+    user.memorize(response)
     redirect '/protected'
   else
     @button = '"Log in"'
