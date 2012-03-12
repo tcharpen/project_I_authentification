@@ -73,19 +73,20 @@ describe 'Server' do
     end
     context 'in good cases' do
       before do
-        User.stub(:find_user){true}
-        app.settings.session_manager.stub(:create_session)
+        @user = double('user')
+        @user.stub(:memorize)
+        User.stub(:find_user){@user}
       end
       describe 'post /authenticated' do
         it 'should create a session' do
-          User.should_receive(:find_user).with(@params['login'],@params['password'])
-          app.settings.session_manager.should_receive(:create_session)
+          User.should_receive(:find_user).with(@params['login'],@params['password']).and_return(@user)
+          @user.should_receive(:memorize)
           post '/authenticated', @params
          end
         it 'should redirect to /protected' do
           post '/authenticated', @params
           last_response.status.should be 302
-          last_response.header['Location'].should match %r{http://[^/]*/protected} 
+          last_response.header['Location'].should match %r{http://[^/]*/protected}
         end
       end
     end
@@ -105,20 +106,39 @@ describe 'Server' do
   describe 'get /protected' do
     context 'if the user is authenticated' do
       before do
-        app.settings.session_manager.stub(:session){ {} }
+        @user = double('user')
+        @user.stub(:nil?){false} #not necessary, i guess
+        User.stub(:remember){@user}
       end
-      it 'should return a welcome sentence' do
-        get '/protected'
-        last_response.status.should == 200
-        last_response.body.should == 'You are log in'
+      context 'if the user is a non-admin user' do
+        before do
+          @user.stub(:admin){false}
+        end
+        it 'should return a welcome sentence' do
+          get '/protected'
+          last_response.status.should == 200
+          last_response.body.should == 'You are log in'
+        end
+      end
+      context 'if the user is an admin user' do
+        before do
+          @user.stub(:admin){true}
+        end
+        it 'should return an admin page' do
+          get '/protected'
+          last_response.status.should == 200
+          last_response.body.should match %r{.*Admin page.*}
+        end
       end
     end
     context 'if the user is not authenticated' do
       before do
-        app.settings.session_manager.stub(:session){ nil }
+        @user = double('user')
+        @user.stub(:nil?){true}
+        User.stub(:remember){@user}
       end
       it 'should return a form to allow users to post authentication info' do
-        get '/authentication'
+        get '/protected'
         last_response.body.should match %r{<form action="/authenticated" method="post"/>}
       end
     end
