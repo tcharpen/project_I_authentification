@@ -112,29 +112,13 @@ describe User do
       @response = double('Rack::Response')
       @response.stub(:set_cookie)
     end
-    it 'should generate a cookie id' do
-      User.should_receive(:generate_cookie_id)
-      subject.memorize(@response)
-    end
-    it 'should store the cookie in the response' do
-      sid = double('id')
-      User.should_receive(:generate_cookie_id).and_return{sid} 
-      @response.should_receive(:set_cookie).with('s_auth_id',sid)
+    it 'should store a cookie in the response' do
+      @response.should_receive(:set_cookie)
       subject.memorize(@response)
     end
     it 'should store the cookie in the database' do
-      sid = double('id')
-      User.should_receive(:generate_cookie_id).and_return{sid} 
-      subject.should_receive(:cookie=).with(sid)
+      subject.should_receive(:cookie=)
       subject.memorize(@response)
-    end
-  end
-  describe 'self.generate_cookie_id' do
-    it 'should return an id' do
-      User.generate_cookie_id.should_not be_nil
-    end
-    it 'should return an id which is not already used' do
-      #TODO, I don't know how to do that
     end
   end
   describe 'self.remember' do

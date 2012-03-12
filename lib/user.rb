@@ -9,19 +9,12 @@ class User < ActiveRecord::Base
     User.where('login = ? AND password = ?', login, password).find_by_login(login)
   end
 
-  def self.generate_cookie_id
+  def memorize(response)
     sid = 0
     loop do
-      sid = rand(2**32-1)
-      break if User.where('cookie = ?',sid).empty?
+      self.cookie = sid
+      break if self.save
     end
-    sid
-  end
-
-  def memorize(response)
-    sid = User.generate_cookie_id
-    self.cookie = sid
-    self.save
     response.set_cookie('s_auth_id',sid)
   end
 
