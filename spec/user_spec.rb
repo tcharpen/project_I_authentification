@@ -3,110 +3,90 @@ require_relative '../database.rb'
 
 describe User do
   before do
-    @default_login = 'toto'
-    @default_password = '1234'
+    @login = 'toto'
+    @password = '1234'
     User.all.each { |u| u.destroy }
   end
   after do
     User.all.each { |u| u.destroy }
   end
   describe 'save' do
-    context 'if the user has a login length greater than 4 or equal' do
-      before do
-        @login_ge_4 = '12345'
-      end
+    context 'if the user login length is between 4 and 15 (bound included)' do
       it 'should return true' do
-        User.new(:login => @login_ge_4,:password => @default_password).save.should be_true
+        User.new(:login => @login,:password => @password).save.should be_true
+      end
+      it 'should store the user in memory' do
+        User.new(:login => @login,:password => @password).save.should be_true
+        User.find_by_login(@login).should be_true
       end
     end
-    context 'if the user has a login length lower than 4' do
+    context 'if the user login length is greater than 15' do
       before do
-        @login_lt_4 = '123'
+        @login = 'login_greater_than_15'
       end
       it 'should return false' do
-        User.new( :login => @login_lt_4, :password => @default_password ).save.should be_false
+        User.new(:login => @login,:password => @password).save.should be_false
+      end
+      it 'should not store the user in memory' do
+        User.new(:login => @login,:password => @password).save.should be_false
+        User.find_by_login(@login).should be_nil
       end
     end
-    context 'if the user login is already used' do
+    context 'if the user login length is lower than 4' do
       before do
-        User.new(:login => @default_login,:password => @default_password).save
+        @login = 'l<4'
       end
       it 'should return false' do
-        User.new(:login => @default_login,:password => @default_password).save.should be_false
+        User.new(:login => @login,:password => @password).save.should be_false
       end
-    end
-    context 'if the user login is unsused' do
-      it 'should return true' do
-        User.new(:login => @default_login,:password => @default_password).save.should be_true
-      end
-    end
-    context 'if the user password length is greater than 4 or equal' do
-      before do
-        @pwd_ge_4 = '12345'
-      end
-      it 'should return true' do
-        User.new(:login => @default_login,:password => @pwd_ge_4).save.should be_true
+      it 'should not store the user in memory' do
+        User.new(:login => @login,:password => @password).save.should be_false
+        User.find_by_login(@login).should be_nil
       end
     end
     context 'if the user password length is lower than 4' do
       before do
-        @pwd_lt_4 = '123'
+        @password = 'p<4'
       end
       it 'should return false' do
-        User.new(:login => @default_login,:password => @pwd_lt_4).save.should be_false
+        User.new(:login => @login,:password => @password).save.should be_false
+      end
+      it 'should not store the user in memory' do
+        User.new(:login => @login,:password => @password).save.should be_false
+        User.find_by_login(@login).should be_nil
       end
     end
-  end
-  describe 'self.find_user' do
-    context 'if parameters match with a user in the database' do
+    context 'if the user password is greater than 15' do
       before do
-        User.new(:login => @default_login,:password => @default_password).save
+        @password = 'password_greater_than_15'
       end
-      it 'should return this user' do
-        User.find_user(@default_login,@default_password).login.should == @default_login
-      end
-    end
-    context 'if parameters do not match a user in the database' do
       it 'should return false' do
-        User.find_user(@default_login,@default_password).should be_false
+        User.new(:login => @login,:password => @password).save.should be_false
+      end
+      it 'should not store the user in memory' do
+        User.new(:login => @login,:password => @password).save.should be_false
+        User.find_by_login(@login).should be_nil
       end
     end
-  end
-  describe 'admin' do
-    context 'if the user is an admin' do
-      before do
-        @user = \
-        User.new(
-                 :login => @default_login,
-                 :password => @default_password,
-                 :admin => true
-                 )
-        @user.save
-      end
+    context 'if the user login is unsused' do
       it 'should return true' do
-        user = User.find_user(@default_login,@default_password)
-        user.admin.should be_true
+        User.new(:login => @login,:password => @password).save.should be_true
+      end
+      it 'should store the user in memory' do
+        User.new(:login => @login,:password => @password).save.should be_true
+        User.find_by_login(@login).should be_true
       end
     end
-    context 'if the user is not an admin' do
-      before do
-        @user = \
-        User.new(
-                 :login => @default_login,
-                 :password => @default_password,
-                 :admin => false
-                 )
-        @user.save
-      end
+    context 'if the user login is already used' do
       it 'should return false' do
-        user = User.find_user(@default_login,@default_password)
-        user.admin.should be_false
+        User.new(:login => @login,:password => @password).save.should be_true
+        User.new(:login => @login,:password => @password).save.should be_false
       end
     end
   end
   describe 'memorize' do
     subject do
-      User.new(:login => @default_login,:password => @default_password)
+      User.new(:login => @login,:password => @password)      
     end
     before do
       @response = double('Rack::Response')
@@ -121,29 +101,49 @@ describe User do
       subject.memorize(@response)
     end
   end
+  describe 'self.find_user' do
+    before do
+      User.new(:login => @login,:password => @password).save
+    end
+    context 'if parameters match with a user in the database' do
+      it 'should return this user' do
+        User.find_user(@login,@password).login.should == @login
+      end
+    end
+    context 'if parameters do not match a user in the database' do
+      it 'should return false' do
+        User.find_user('other_login','other_password').should be_false
+      end
+    end
+  end
   describe 'self.remember' do
+    before do
+      @sid = '1664'
+      @request = double('Rack::Request')
+      @request.stub(:cookies){ {'s_auth_id'=>@sid} }
+    end
     context 'if request comes from a user previously memorized' do
       before do
-        @sid = '1664'
-        @request = double('Rack::Request')
-        @request.stub(:cookies){ {'s_auth_id'=>@sid} }
         @user = \
         User.new(
-                 :login => @default_login,
-                 :password => @default_password,
+                 :login => @login,
+                 :password => @password,
                  :cookie => @sid
                  ).save
       end
       it 'should return this user' do
         User.remember(@request).should_not be_nil
-        User.remember(@request).login.should == @default_login
+        User.remember(@request).login.should == @login
       end
     end
     context 'if request comes from a user not memorized' do
       before do
-        @sid = '1664'
-        @request = double('Rack::Request')
-        @request.stub(:cookies){ {'s_auth_id'=>@sid} }
+        @user = \
+        User.new(
+                 :login => @login,
+                 :password => @password,
+                 :cookie => '51'
+                 ).save
       end
       it 'should return nil' do
         User.remember(@request).should be_nil
