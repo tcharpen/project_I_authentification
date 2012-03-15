@@ -6,22 +6,22 @@ describe 'Server' do
   end
   describe 'Home page' do
     describe 'get /' do
-      it 'should return a page with a link to /register' do
+      it 'should return a page with a link to /users/new' do
         get '/'
-        last_response.body.should match %r{.*<form action="/register" method="get">.*}
+        last_response.body.should match %r{.*<form action="/users/new" method="get">.*}
       end
-      it 'should return a page with a link to /authentication' do
+      it 'should return a page with a link to /sessions/new' do
                 get '/'
-        last_response.body.should match %r{.*<form action="/authentication" method="get">.*}
+        last_response.body.should match %r{.*<form action="/sessions/new" method="get">.*}
       end
     end
   end
   describe 'Registration' do
     context 'in all cases' do
-      describe 'get /register' do
+      describe 'get /users/new' do
         it 'should return a form to allow users to post registration info' do
-          get '/register'
-          last_response.body.should match %r{<form action="/registered" method="post"/>}
+          get '/users/new'
+          last_response.body.should match %r{<form action="/users" method="post"/>}
         end
       end
     end
@@ -31,20 +31,20 @@ describe 'Server' do
         @user.stub(:save){true}
         User.stub(:new){@user}
       end
-      describe 'post /registered' do
+      describe 'post /users' do
         it 'should create a user' do
           User.should_receive(:new)
-          post '/registered', @params
+          post '/users', @params
         end
         it 'should save the user' do
           User.should_receive(:new).with( :login => @params['login'], :password => @params['password'] ).and_return(@user)
           @user.should_receive(:save)
-          post '/registered', @params
+          post '/users', @params
         end
-        it 'should redirect to /authentication' do
-          post '/registered', @params
+        it 'should redirect to /sessions/new' do
+          post '/users', @params
           last_response.status.should be 302
-          last_response.header['Location'].should match %r{http://[^/]*/authentication}
+          last_response.header['Location'].should match %r{http://[^/]*/sessions/new}
         end
       end
     end
@@ -54,37 +54,37 @@ describe 'Server' do
         @user.stub(:save){false}
         User.stub(:new){@user}
       end
-      describe 'post /registered' do
+      describe 'post /users' do
         it 'should return a form to allow users to post registration info' do
-          post '/registered'
-          last_response.body.should match %r{<form action="/registered" method="post"/>}
+          post '/users'
+          last_response.body.should match %r{<form action="/users/new" method="post"/>}
         end
       end
     end
   end
   describe 'authentication' do
     context 'in all cases' do
-      describe 'get /authentication' do
+      describe 'get /sessions/new' do
         it 'should return a form to allow users to post authentication info' do
-          get '/authentication'
-          last_response.body.should match %r{<form action="/authenticated" method="post"/>}
+          get '/sessions/new'
+          last_response.body.should match %r{<form action="/sessions" method="post"/>}
         end
       end
     end
     context 'in good cases' do
       before do
         @user = double('user')
-        @user.stub(:memorize)
+        @user.stub(:login){'mock_login'}
         User.stub(:find_user){@user}
       end
-      describe 'post /authenticated' do
-        it 'should create a session' do
+      describe 'post /sessions' do
+        it 'should return a cookie' do
           User.should_receive(:find_user).with(@params['login'],@params['password']).and_return(@user)
-          @user.should_receive(:memorize)
-          post '/authenticated', @params
+          post '/sessions', @params
+          last_response.header['Set-Cookie'].should match %r{rack.session=}
          end
         it 'should redirect to /protected' do
-          post '/authenticated', @params
+          post '/sessions', @params
           last_response.status.should be 302
           last_response.header['Location'].should match %r{http://[^/]*/protected}
         end
@@ -94,11 +94,11 @@ describe 'Server' do
       before do
         User.stub(:find_user){false}
       end
-      describe 'post /authenticated' do
+      describe 'post /sessions' do
         it 'should return a form to allow users to post authentication info' do
           User.should_receive(:find_user).with(@params['login'],@params['password'])
-          post '/authenticated', @params
-          last_response.body.should match %r{<form action="/authenticated" method="post"/>}
+          post '/sessions', @params
+          last_response.body.should match %r{<form action="/sessions/new" method="post"/>}
         end
       end
     end
@@ -108,7 +108,7 @@ describe 'Server' do
       before do
         @user = double('user')
         @user.stub(:nil?){false} #not necessary, i guess
-        User.stub(:remember){@user}
+        User.stub(:find_by_login){@user}
       end
       context 'if the user is a non-admin user' do
         before do
@@ -139,7 +139,7 @@ describe 'Server' do
       end
       it 'should return a form to allow users to post authentication info' do
         get '/protected'
-        last_response.body.should match %r{<form action="/authenticated" method="post"/>}
+        last_response.body.should match %r{<form action="/sessions/new" method="post"/>}
       end
     end
   end
