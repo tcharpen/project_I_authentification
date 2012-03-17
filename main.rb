@@ -5,6 +5,8 @@ require_relative 'database.rb'
 
 use Rack::Session::Pool
 
+enable :method_override # override any post form which contains _method
+
 #############
 ##Home Page##
 #############
@@ -22,7 +24,7 @@ get '/protected' do
   if user.nil?
     erb :users_authentication_form
   elsif user.admin
-    erb :admin_page
+    erb :admin_page, :locals => {:user => user}
   else
     erb :users_home_page, :locals => {:user => user}
   end    
@@ -57,7 +59,7 @@ post '/sessions' do
   user = User.find_user(params['login'],params['password'])
   if user
     session['current_user'] = user.login
-    erb :users_home_page, :locals => { :user => user }
+    redirect '/protected'
   else
     erb :users_authentication_form
   end
@@ -80,8 +82,17 @@ post '/applications' do
 
   application = Application.new(:name => params['name'], :url => params['url'], :user => user)
   if application.save
-    erb :users_home_page, :locals => { :user => user }
+    erb :admin_page, :locals => { :user => user }
   else
     erb :applications_registration_form
   end
+end
+
+delete "/applications/:id" do
+  user = User.find_by_login(session['current_user'])
+  halt erb :users_authentication_form unless user
+  
+  app = user.applications.find_by_id(params[:id])
+  app.delete if app
+  erb :admin_page, :locals => { :user => user }
 end

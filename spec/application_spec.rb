@@ -4,9 +4,11 @@ require_relative '../database.rb'
 
 describe Application do
   before do
+    User.all.each { |u| u.destroy }    
     Application.all.each { |a| a.destroy }
   end
   after do 
+    User.all.each { |u| u.destroy }    
     Application.all.each { |a| a.destroy }
   end
   it 'should have a name' do
