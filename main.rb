@@ -1,5 +1,6 @@
 require 'sinatra'
 require_relative 'lib/user.rb'
+require_relative 'lib/application.rb'
 require_relative 'database.rb'
 
 use Rack::Session::Pool
@@ -17,18 +18,13 @@ end
 ##################
 
 get '/protected' do
-  user = User.find_by_login(params[:id]) \
-  if session['current_user'] == params[:id]
-  
+  user = User.find_by_login(session['current_user'])
   if user.nil?
-    @button = '"Log in"'
-    @title = 'Authentication'
-    @target = '"/sessions/new"'
-    erb :form
+    erb :users_authentication_form
   elsif user.admin
     erb :admin_page
   else
-    'You are log in'
+    erb :users_home_page, :locals => {:user => user}
   end    
 end
 
@@ -37,21 +33,15 @@ end
 ################
 
 get '/users/new' do
-  @button = '"Register"'
-  @title = 'Registration'
-  @target = '"/users"'
-  erb :form
+  erb :users_registration_form
 end
 
 post '/users' do
   user = User.new(:login => params['login'],:password => params['password'])
   if user.save
-    redirect '/sessions/new'
+    erb :users_authentication_form
   else
-    @button = '"Register"'
-    @title = 'Registration'
-    @target = '"/users/new"' 
-    erb :form
+    erb :users_registration_form
   end
 end
 
@@ -60,21 +50,38 @@ end
 ##################
 
 get '/sessions/new' do
-  @button = '"Log in"'
-  @title = 'Authentication'
-  @target = '"/sessions"'
-  erb :form
+  erb :users_authentication_form
 end
 
 post '/sessions' do
   user = User.find_user(params['login'],params['password'])
   if user
     session['current_user'] = user.login
-    redirect '/protected'
+    erb :users_home_page, :locals => { :user => user }
   else
-    @button = '"Log in"'
-    @title = 'Authentication'
-    @target = '"/sessions/new"'
-    erb :form
+    erb :users_authentication_form
+  end
+end
+
+############################
+##Application registration##
+############################
+
+get '/applications/new' do
+  user = User.find_by_login(session['current_user'])
+  halt erb :users_authentication_form unless user
+
+  erb :applications_registration_form
+end
+
+post '/applications' do
+  user = User.find_by_login(session['current_user'])
+  halt erb :users_authentication_form unless user
+
+  application = Application.new(:name => params['name'], :url => params['url'], :user => user)
+  if application.save
+    erb :users_home_page, :locals => { :user => user }
+  else
+    erb :applications_registration_form
   end
 end

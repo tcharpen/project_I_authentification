@@ -1,7 +1,9 @@
 require 'active_record'
 
 class User < ActiveRecord::Base
-  validates :login, :length => { :minimum => 4, :maximum => 15 }
+  has_many :applications
+
+  validates :login, :format => { :with => %r{^\w{4,15}$} }
   validates :login, :uniqueness => true
   validates :password, :length => { :minimum => 4, :maximum => 15 }
 
