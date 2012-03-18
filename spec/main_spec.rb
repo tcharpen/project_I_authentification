@@ -238,8 +238,10 @@ describe 'Server' do
           User.stub(:find_by_login){@user}
         end
         it 'should delete the application matching the id and the user' do
+          @user.stub(:applications).and_return(@app_group,[])
+          @user.stub(:login){'toto'}
           User.should_receive(:find_by_login)
-          @user.should_receive(:applications)
+          @user.should_receive(:applications).twice
           @app_group.should_receive(:find_by_id).with(@id)
           @app.should_receive(:delete)
           delete "/applications/#{@id}"
