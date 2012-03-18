@@ -1,8 +1,13 @@
 $: << File.dirname(__FILE__)
-require_relative 'database.rb'
+require 'active_record'
 
-ActiveRecord::Migration.verbose = true
-ActiveRecord::Migrator.migrate "db/migrate"
+config = YAML::load( File.open( File.join('config','database.yml') ) )
+
+config.each do |db_name,db_config|
+  ActiveRecord::Base.establish_connection( db_config )
+  ActiveRecord::Migration.verbose = true
+  ActiveRecord::Migrator.migrate "db/migrate"
+end
 
 # sqlite3 db/devlopment.sqlite3
 #

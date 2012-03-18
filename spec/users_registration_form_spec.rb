@@ -1,4 +1,4 @@
-require_relative 'spec_helper'
+require 'spec_helper'
 
 describe 'Users registration page' do
   it 'should be a html page' do

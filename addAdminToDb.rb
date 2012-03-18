@@ -1,3 +1,4 @@
+ENV['RACK_ENV'] = 'test'
 require_relative './lib/user.rb'
 require_relative 'database.rb' 
 

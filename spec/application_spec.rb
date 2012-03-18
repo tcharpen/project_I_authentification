@@ -1,3 +1,4 @@
+require 'spec_helper'
 require_relative '../lib/application.rb'
 require_relative '../lib/user.rb'
 require_relative '../database.rb'
