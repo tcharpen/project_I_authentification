@@ -11,7 +11,7 @@
 <% user.applications.each do |a| %>
 <tr>
   <td><%= a.name %></td>
-  <td><%= a.url %></td>
+  <td><%= a.secret %></td>
   <td>
     <form action="/applications/<%= a.id %>" method="post">
       <input type="hidden" name="_method" value="delete">

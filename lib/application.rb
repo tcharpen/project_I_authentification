@@ -5,7 +5,7 @@ class Application < ActiveRecord::Base
 
   validates :name, :uniqueness => true
   validates :name, :format => {:with => %r{^\w{4,}$} }
-  validates :url, :format => {:with => %r{^http:\/\/\w+(\.{1}\w+)?(:\d+)?(\/\w+)*\/?$} }
+  validates :secret, :format => {:with => %r{^.{4,32}$}}
   validates :user, :presence => true
 end
 

@@ -52,14 +52,41 @@ end
 ##################
 
 get '/sessions/new' do
-  erb :users_authentication_form
+  user = User.find_by_login(session['current_user'])
+  app = Application.find_by_name(params['appname'])
+
+  if app
+    if user
+      redirect "#{params['origin']}?secret=#{app.secret}&login=#{user.login}"
+    else
+      @origin = params['origin']
+      @appname = params['appname']
+      erb :users_authentication_form
+    end
+  else
+    if user
+      erb :users_home_page, :locals => { :user => user }
+    else
+      erb :users_authentication_form
+    end
+  end
 end
 
 post '/sessions' do
   user = User.find_user(params['login'],params['password'])
   if user
     session['current_user'] = user.login
-    redirect '/protected'
+    if params['app_name'] && params['back_url']
+      app = Application.find_by_name(params['app_name'])
+      if app
+        redirect "#{params['back_url']}?secret=#{app.secret}&login=#{user.login}"
+      else
+        redirect "/protected"
+      end
+    else
+      redirect "/protected"
+    end
+
   else
     erb :users_authentication_form
   end
@@ -80,7 +107,7 @@ post '/applications' do
   user = User.find_by_login(session['current_user'])
   halt erb :users_authentication_form unless user
 
-  application = Application.new(:name => params['name'], :url => params['url'], :user => user)
+  application = Application.new(:name => params['name'], :secret => params['secret'], :user => user)
   if application.save
     erb :admin_page, :locals => { :user => user }
   else

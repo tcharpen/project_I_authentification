@@ -21,9 +21,9 @@ describe 'Applications registration page' do
       get '/applications/new'
       last_response.body.should match %r{<form action="/applications" method="post">(\n|.)*<input name="name" size="30" type="text"/>(\n|.)*<input name="commit" type="submit" value="Submit"/>(\n|.)*</form>}
     end
-    it 'should have an url input' do
+    it 'should have a secret input' do
       get '/applications/new'
-      last_response.body.should match %r{<form action="/applications" method="post">(\n|.)*<input name="url" size="30" type="text"/>(\n|.)*<input name="commit" type="submit" value="Submit"/>(\n|.)*</form>}
+      last_response.body.should match %r{<form action="/applications" method="post">(\n|.)*<input name="secret" size="30" type="text"/>(\n|.)*<input name="commit" type="submit" value="Submit"/>(\n|.)*</form>}
     end
   end
 end

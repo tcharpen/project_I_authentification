@@ -22,7 +22,7 @@ describe 'Server' do
       before do
         @params = {'login'=>'toto','password'=>'1234'}
       end
-      context 'if the model agree parameters' do
+      context 'if the model agree registration' do
         before do
           @user = double('user')
           @user.stub(:save){true}
@@ -43,13 +43,11 @@ describe 'Server' do
           last_response.body.should match %r{<title>User authentication</title>}
         end
       end
-      context 'if the model does not agree parameters' do
-        before do
+      context 'if the model does not agree registration' do
+        it 'should return the users_registration_form' do
           @user = double('user')
           @user.stub(:save){false}
           User.stub(:new){@user}
-        end
-        it 'should return the users_registration_form' do
           post '/users'
           last_response.status.should be 200
           last_response.body.should match %r{<title>User registration</title>}
@@ -59,21 +57,116 @@ describe 'Server' do
   end
   describe 'Authentication' do
     describe 'get /sessions/new' do
-      it 'should return the users_authentication_form' do
-        get '/sessions/new'
-        last_response.status.should be 200
-        last_response.body.should match %r{<title>User authentication</title>}
+      context 'if the request comes from a user who was redirected by a remote server' do
+        before do
+          @params = { 'appname' => 'app1', 'origin' => 'http://app1.com/protected' }
+        end
+        context 'if the remote server is registered in this authentication server' do
+          before do
+            @app1 = double('app')
+            @app1.stub(:secret){'app1secret'}
+            Application.stub(:find_by_name){@app1}
+          end
+          context 'if the user is already authenticated' do
+            before do
+              @user = double('user')
+              @user.stub(:login){'toto'}
+              User.stub(:find_by_login){@user}
+            end
+            it 'should redirect the user to the remote server' do
+              get '/sessions/new', @params
+              last_response.status.should be 302
+              last_response.header['Location'].should match %r{#{@params['origin']}}
+            end
+            it 'should include the remote server secret in the redirection url' do
+              get '/sessions/new', @params
+              last_response.status.should be 302
+              last_response.header['Location'].should match %r{(\?|&)secret=app1secret}              
+            end
+            it 'should include the user login in the redirection url' do
+              get '/sessions/new', @params
+              last_response.status.should be 302
+              last_response.header['Location'].should match %r{(\?|&)login=toto}              
+            end
+          end
+          context 'if the user is not authenticated' do 
+            before do
+              User.stub(:find_by_login){nil}
+            end
+            it 'should return the users_authentication_form' do
+              get '/sessions/new', @params
+              last_response.status.should be 200
+              last_response.body.should match %r{<title>User authentication</title>}
+            end
+            it 'should return the url requested by the user in the form as a hidden parameter' do
+              get '/sessions/new', @params
+              last_response.status.should be 200
+              last_response.body.should match %r{<input name="back_url" type="hidden" value="#{@params['origin']}"/>}
+            end
+            it 'should return the application name requested by the user in the form as a hidden parameter' do
+              get '/sessions/new', @params
+              last_response.status.should be 200
+              last_response.body.should match %r{<input name="app_name" type="hidden" value="#{@params['appname']}"/>}
+            end
+          end
+        end
+        context 'if the remote server is not registered in this authentication server' do
+          before do
+            Application.stub(:find_by_name){nil}
+          end
+          context 'if the user is already authenticated' do
+            it 'should return the users_home_page' do
+              @user = double('user')
+              @user.stub(:login){'toto'}
+              User.stub(:find_by_login){@user}
+              get '/sessions/new', @params
+              last_response.status.should be 200
+              last_response.body.should match %r{<title>Private home page</title>}              
+            end
+          end
+          context 'if the user is not authenticated' do
+            it 'should return the users_authentication_form' do
+              User.stub(:find_by_login){nil}
+              get '/sessions/new', @params
+              last_response.status.should be 200
+              last_response.body.should match %r{<title>User authentication</title>}                            
+            end
+          end
+        end
+      end
+      context 'if the request comes from a user who visited this server' do
+        before do
+          Application.stub(:find_by_name){nil}
+        end
+        context 'if the user is already authenticated' do
+          it 'should return the users_home_page' do
+            @user = double('user')
+            @user.stub(:login){'toto'}
+            User.stub(:find_by_login){@user}
+            get '/sessions/new', @params
+            last_response.status.should be 200
+            last_response.body.should match %r{<title>Private home page</title>}              
+          end
+        end
+        context 'if the user is not authenticated' do
+          it 'should return the users_authentication_form' do
+            User.stub(:find_by_login){nil}
+            get '/sessions/new'
+            last_response.status.should be 200
+            last_response.body.should match %r{<title>User authentication</title>}
+          end
+        end
       end
     end
     describe 'post /sessions' do
       before do
         @params = {'login'=>'toto','password'=>'1234'}
       end
-      context 'if the model agree parameters' do
+      context 'if the model agree authentication' do
         before do
           @user = double('user')
           @user.stub(:applications){[]}
-          @user.stub(:login){'mock_login'}
+          @user.stub(:login){'toto'}
           User.stub(:find_user){@user}
         end
         it 'should return a cookie' do
@@ -81,17 +174,52 @@ describe 'Server' do
           post '/sessions', @params
           last_response.header['Set-Cookie'].should match %r{rack.session=}
         end
-        it 'should redirect to /protected' do
-          post '/sessions', @params
-          last_response.status.should be 302
-          last_response.header['Location'].should match %r{/protected}
+        context 'if the request contains app_name and back_url' do
+          before do
+            @params = @params.merge({'app_name' => 'app1', 'back_url' => 'http://app1server.com/protected'})
+          end
+          context 'if app_name match an existing application' do
+            before do
+              @app = double ('application')
+              @app.stub(:secret){'app1secret'}
+              Application.stub(:find_by_name){@app}
+            end
+            it 'should redirect to this url' do
+              post '/sessions', @params
+              last_response.status.should be 302
+              last_response.header['Location'].should match %r{#{@params['back_url']}}
+            end
+            it 'should include the application secret in the redirection url' do
+              post '/sessions', @params
+              last_response.status.should be 302
+              last_response.header['Location'].should match %r{(\?|&)secret=app1secret}
+            end
+            it 'should include the user login in the redirecttion url' do
+              post '/sessions', @params
+              last_response.status.should be 302
+              last_response.header['Location'].should match %r{(\?|&)login=#{@params['login']}}
+            end
+          end
+          context 'if the app_name does not match an existing application' do
+            it 'should redirect to /protected' do
+              Application.stub(:find_by_name){nil}
+              post '/sessions', @params
+              last_response.status.should be 302
+              last_response.header['Location'].should match %r{http://example.org/protected}
+            end
+          end
+        end
+        context 'if the request does not contain app_name or back_url' do
+          it 'should redirect to /protected' do
+            post '/sessions', @params
+            last_response.status.should be 302
+            last_response.header['Location'].should match %r{http://example.org/protected}
+          end
         end
       end
-      context 'if the model does not agree parameters' do
-        before do
-          User.stub(:find_user){false}
-        end
+      context 'if the model does not agree authentication' do
         it 'should return the users_authentication_form' do
+          User.stub(:find_user){false}
           User.should_receive(:find_user).with(@params['login'],@params['password'])
           post '/sessions', @params
           last_response.status.should be 200
@@ -105,26 +233,21 @@ describe 'Server' do
       context 'if the user is authenticated' do
         before do
           @user = double('user')
-          @user.stub(:nil?){false} #not necessary, i guess
           @user.stub(:login){'toto'}
           User.stub(:find_by_login){@user}
         end
         context 'if the user is not an admin' do
-          before do
-            @user.stub(:admin){false}
-          end
           it 'should return the users_home_page' do
+            @user.stub(:admin){false}
             get '/protected'
             last_response.status.should == 200
             last_response.body.should match %r{<title>Private home page</title>}
           end
         end
         context 'if the user is an admin' do
-          before do
+          it 'should return the admin_page' do
             @user.stub(:applications){[]}
             @user.stub(:admin){true}
-          end
-          it 'should return the admin_page' do
             get '/protected'
             last_response.status.should == 200
             last_response.body.should match %r{<title>Applications administrator page</title>}
@@ -132,12 +255,10 @@ describe 'Server' do
         end
       end
       context 'if the user is not authenticated' do
-        before do
+        it 'should return the users_authentication_form' do
           @user = double('user')
           @user.stub(:nil?){true}
           User.stub(:remember){@user}
-        end
-        it 'should return the users_authentication_form' do
           get '/protected'
           last_response.status.should be 200
           last_response.body.should match %r{<title>User authentication</title>}
@@ -148,20 +269,16 @@ describe 'Server' do
   describe 'Applications registration' do
     describe 'get /applications/new' do
       context 'if the user is authenticated' do
-        before do
-          User.stub(:find_by_login){true}
-        end
         it 'should return the applications_registration_form' do
+          User.stub(:find_by_login){true}
           get '/applications/new'
           last_response.status.should be 200
           last_response.body.should match %r{<title>Application registration</title>}
         end
       end
       context 'if the user is not authenticated' do
-        before do
-          User.stub(:find_by_login){nil}
-        end
         it 'should return the users_authentication_form' do
+          User.stub(:find_by_login){nil}
           get '/applications/new'
           last_response.status.should be 200
           last_response.body.should match %r{<title>User authentication</title>}   
@@ -170,7 +287,7 @@ describe 'Server' do
     end
     describe 'post /applications' do
       before do
-        @params = { 'name' => 'MyApp', 'url' => 'http://MyUrl.com' }
+        @params = { 'name' => 'MyApp', 'secret' => 'MySecret' }
       end
       context 'if the user is authenticated' do
         before do
@@ -178,15 +295,15 @@ describe 'Server' do
           @user.stub(:login){'toto'}
           User.stub(:find_by_login){@user}
         end
-        context 'if the model agree parameters' do
+        context 'if the model agree the application registration' do
           before do
             @user.stub(:applications){[]}
             @application = double('Application')
             @application.stub(:save){true}
             Application.stub(:new){@application}
           end
-          it 'should create an application with the name and the url in the post request' do
-            Application.should_receive(:new).with(:name => @params['name'], :url => @params['url'], :user => @user)
+          it 'should create an application with the name and the secret' do
+            Application.should_receive(:new).with(:name => @params['name'], :secret => @params['secret'], :user => @user)
             post '/applications', @params
           end
           it 'should call the model to try to save the application' do
@@ -199,13 +316,11 @@ describe 'Server' do
             last_response.body.should match %r{<title>Applications administrator page</title>}
           end
         end
-        context 'if the model does not agree parameters' do
-          before do
+        context 'if the model does not agree the application registration' do
+          it 'should return the applications_registration_form' do
             @application = double('Application')
             @application.stub(:save){false}
             Application.stub(:new){@application}
-          end
-          it 'should return the applications_registration_form' do
             post '/applications', @params
             last_response.status.should be 200
             last_response.body.should match %r{<title>Application registration</title>}
@@ -213,10 +328,8 @@ describe 'Server' do
         end
       end
       context 'if the user is not authenticated' do
-        before do
-          User.stub(:find_by_login){nil}
-        end
         it 'should return the users_authentication_form' do
+          User.stub(:find_by_login){nil}
           post '/applications', @params
           last_response.status.should be 200
           last_response.body.should match %r{<title>User authentication</title>}
@@ -234,12 +347,11 @@ describe 'Server' do
           @app_group = double('applications')
           @app_group.stub(:find_by_id){@app}
           @user = double('user')
-          @user.stub(:applications){@app_group}
+          @user.stub(:login){'toto'}
+          @user.stub(:applications).and_return(@app_group,[])
           User.stub(:find_by_login){@user}
         end
         it 'should delete the application matching the id and the user' do
-          @user.stub(:applications).and_return(@app_group,[])
-          @user.stub(:login){'toto'}
           User.should_receive(:find_by_login)
           @user.should_receive(:applications).twice
           @app_group.should_receive(:find_by_id).with(@id)
@@ -247,8 +359,6 @@ describe 'Server' do
           delete "/applications/#{@id}"
         end
         it 'should return the admin_page' do
-          @user.stub(:applications).and_return(@app_group,[])
-          @user.stub(:login){'toto'}
           delete "/applications/#{@id}"
           last_response.status.should be 200
           last_response.body.should match %r{<title>Applications administrator page</title>}
@@ -256,6 +366,7 @@ describe 'Server' do
       end
       context 'if the current session does not match an existing user' do
         it 'should return the users_authentication_form' do
+          User.stub(:find_by_login){nil}
           delete "/applications/#{@id}"
           last_response.status.should be 200
           last_response.body.should match %r{<title>User authentication</title>}

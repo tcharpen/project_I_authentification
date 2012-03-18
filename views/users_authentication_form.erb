@@ -13,6 +13,10 @@
     <label>Password</label><br/>
     <input name="password" size="30" type="password"/><br/>
     <input name="commit" type="submit" value="Submit"/>
+    <% if @origin %>
+    <input name="back_url" type="hidden" value="<%=@origin%>"/>
+    <input name="app_name" type="hidden" value="<%=@appname%>"/>
+    <% end %>
 </form>
 
 </body>

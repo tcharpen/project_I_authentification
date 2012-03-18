@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'spec_helper'
 require_relative '../lib/application.rb'
 require_relative '../lib/user.rb'
@@ -7,7 +8,12 @@ describe Application do
   before do
     User.all.each { |u| u.destroy }    
     Application.all.each { |a| a.destroy }
+    @user = User.new(:login => 'toto', :password => '1234')
+    @name = 'toto'
+    @secret = 'secret'
   end
+  let(:newApp1){Application.new(:name => @name, :secret => @secret, :user => @user)}  
+  let(:newApp2){Application.new(:name => @name, :secret => @secret, :user => @user)}
   after do 
     User.all.each { |u| u.destroy }    
     Application.all.each { |a| a.destroy }
@@ -15,41 +21,36 @@ describe Application do
   it 'should have a name' do
     should respond_to(:name)
   end
-  it 'should have an url' do
-    should respond_to(:url)
+  it 'should have a secret' do
+    should respond_to(:secret)
   end
   it 'should have a user' do
     should respond_to(:user)
   end
   describe 'name' do
-    before do
-      @user = User.new(:login => 'toto', :password => '1234')
-    end
-    it 'should always exists' do      
-      Application.new(:name => '', :url => 'http://MyUrl.com', :user => @user).valid?.should be_false
+    it 'should always exists' do
+      @name = ''
+      newApp1.valid?.should be_false
     end
     it 'should looks like an application name' do
-      user = User.new(:login => 'toto', :password => '1234')    
-      Application.new(:name => '?!&^#', :url => 'http://MyUrl.com', :user => @user).valid?.should be_false      
+      @name = '?§&^#'
+      newApp1.valid?.should be_false      
     end
     it 'should be unique' do
-      user = User.new(:login => 'toto', :password => '1234')
-      Application.new(:name => 'toto', :url => 'http://MyUrl.com', :user => @user).save.should be_true
-      Application.new(:name => 'toto', :url => 'http://MyUrl.com', :user => @user).save.should be_false
+      newApp1.save.should be_true
+      newApp2.valid?.should be_false
     end
   end
-  describe 'url' do
+  describe 'secret' do
     it 'should always exists' do 
-      Application.new(:name => 'toto', :url => '').valid?.should be_false
-    end
-    it 'should looks like an url' do
-      Application.new(:name => 'toto', :url => 'I am not an URL').valid?.should be_false
+      @secret = ''
+      newApp1.valid?.should be_false
     end
   end
   describe 'user' do
     it 'should always exists' do
-      Application.new(:name => 'toto', :url => 'http://MyUrl.com').save.should be_false
+      @user = nil
+      newApp1.valid?.should be_false
     end
   end
 end
-
