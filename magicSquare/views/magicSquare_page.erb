@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Application</title>
+
+    <SCRIPT LANGUAGE="JavaScript">
+
+      function initArray() {
+      this.length = initArray.arguments.length
+      for (var i = 0; i < this.length; i++)
+			  this[i+1] = initArray.arguments[i]
+			  }
+			  var pos = new initArray(9,9,9,9,9,9,9,9,9);
+			  var nummoves= 0;
+			  function random() {
+			  today = new Date();
+			  num = today.getTime();
+			  num = Math.round(Math.abs(Math.sin (num)*1000000)) % 9;
+			  return num;
+			  }
+			  function display(pos) {
+			  for (var i=0; i<9; i++)  {
+					     document.forms[0].elements[i].value = pos[i];
+					     }
+					     document.forms[0].moves.value= nummoves;
+					     win();
+					     }
+					     function move(num) {
+					     if (num < 8 && pos[num+1]==0) {
+						       pos[num+1]= pos[num];
+						       pos[num]= 0;
+						       nummoves++;
+						       }
+						       else if (num > 0 && pos[num-1]==0) {
+					     pos[num-1]= pos[num];
+					     pos[num]= 0;
+					     nummoves++;
+					     } 
+					     else if (num > 2 && pos[num-3]==0) {
+			  pos[num-3]= pos[num];
+			  pos[num]= 0;
+			  nummoves++;
+			  }
+			  else if (num < 6 && pos[num+3]==0 ) {
+					 pos[num+3]= pos[num];
+					 pos[num]= 0;
+					 nummoves++;
+					 }
+					 display(pos);
+					 }
+					 function win() {     
+					 if (pos[0]== 1 & pos[1]== 2 & pos[2]== 3 & pos[3]== 4 & 
+					 pos[4]== 5 & pos[5]== 6 & pos[6]== 7 & pos[7]== 8 & pos[8]== 0) {
+					 if (confirm('You did it! Do you want to restart?')) newgame();
+					 }
+					 }
+					 function newgame() {
+					 var x=1;
+					 for (var i=0; i<9; i++) {
+							    pos[i]=9;
+							    }
+							    for (var i=0; i<9;i++) {
+										   randomnum=random();
+										   if (randomnum==9) randomnum=8;
+										   x=1;
+										   for (var j=0; j<9; j++)  {
+												      if (j==i)
+												      continue;
+												      if (randomnum==pos[j]) {
+												      x=0;
+												      break;
+												      }
+												      }
+												      if (x==0) {
+												      i--;
+												      continue;
+												      }
+												      pos[i]=randomnum;
+												      }
+												      nummoves=0;
+												      display(pos);   
+												      }   
+
+												      </SCRIPT>
+    
+  </head>
+  <body onLoad="window.newgame()">
+
+    <CENTER>
+      <h1 align=center>Magic Squares</h1><p>
+	<FORM>
+	  <table border=0 celpadding=0 cellspacing=10>
+	    <tr><td>
+		<input type="button" value=" 1 " onClick="window.move(0)">
+		<input type="button" value=" 2 " onClick="window.move(1)">
+		<input type="button" value=" 3 " onClick="window.move(2)"><br>
+		<input type="button" value=" 4 " onClick="window.move(3)">
+		<input type="button" value=" 5 " onClick="window.move(4)">
+		<input type="button" value=" 6 " onClick="window.move(5)"><br>
+		<input type="button" value=" 7 " onClick="window.move(6)">
+		<input type="button" value=" 8 " onClick="window.move(7)">
+		<input type="button" value=" 0 " onClick="window.move(8)"><p>
+</td></td>
+<td valign=top>
+
+  Put the numbers in order so that they read 1-8. <br>
+  The 0 is the 'empty' place.  Click on any number <br>
+  next to 0 and they will switch places.
+</td>
+</tr>
+<tr><td align=center>
+    # of moves:<br>
+    <input name="moves" size=7 value="0"> <p> 
+  </td>
+  <td align=center><br>
+    <input type="submit" value="New Game" onClick="window.newgame()">
+  </td>
+</tr>
+
+</table>
+</FORM>
+</CENTER>
+
+<p><center>
+    <font face="arial, helvetica" size="-2">Free JavaScripts provided<br>
+      by <a href="http://javascriptsource.com">The JavaScript Source</a></font>
+</center><p>
+
+
+</body>
+</html>
+

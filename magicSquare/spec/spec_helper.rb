@@ -1,6 +1,6 @@
 require 'rack/test'
 
-require_relative '../app1'
+require_relative '../magicSquare'
 
 include Rack::Test::Methods
 
