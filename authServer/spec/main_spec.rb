@@ -72,6 +72,14 @@ describe 'Server' do
               @user = double('user')
               @user.stub(:login){'toto'}
               User.stub(:find_by_login){@user}
+              @co = double('connection')
+              @co.stub(:save)
+              Connection.stub(:new){@co}
+            end
+            it 'should create a Connection object with the user and the application' do
+              Connection.should_receive(:new).with( :user => @user, :application => @app1)
+              @co.should_receive(:save)
+              get '/sessions/new', @params
             end
             it 'should redirect the user to the remote server' do
               get '/sessions/new', @params
@@ -116,8 +124,10 @@ describe 'Server' do
           end
           context 'if the user is already authenticated' do
             it 'should return the users_home_page' do
+              
               @user = double('user')
               @user.stub(:login){'toto'}
+              @user.stub(:connections){[]}
               User.stub(:find_by_login){@user}
               get '/sessions/new', @params
               last_response.status.should be 200
@@ -142,6 +152,7 @@ describe 'Server' do
           it 'should return the users_home_page' do
             @user = double('user')
             @user.stub(:login){'toto'}
+            @user.stub(:connections){[]}
             User.stub(:find_by_login){@user}
             get '/sessions/new', @params
             last_response.status.should be 200
@@ -183,6 +194,14 @@ describe 'Server' do
               @app = double ('application')
               @app.stub(:secret){'app1secret'}
               Application.stub(:find_by_name){@app}
+              @co = double('connection')
+              @co.stub(:save)
+              Connection.stub(:new){@co}
+            end
+            it 'should create a Connection object with the user and the application' do
+              Connection.should_receive(:new).with( :user => @user, :application => @app)
+              @co.should_receive(:save)
+              post '/sessions', @params
             end
             it 'should redirect to this url' do
               post '/sessions', @params
@@ -239,6 +258,7 @@ describe 'Server' do
         context 'if the user is not an admin' do
           it 'should return the users_home_page' do
             @user.stub(:admin){false}
+            @user.stub(:connections){[]}
             get '/protected'
             last_response.status.should == 200
             last_response.body.should match %r{<title>Private home page</title>}
@@ -246,6 +266,7 @@ describe 'Server' do
         end
         context 'if the user is an admin' do
           it 'should return the admin_page' do
+            @user.stub(:connections){[]}
             @user.stub(:applications){[]}
             @user.stub(:admin){true}
             get '/protected'
@@ -300,6 +321,7 @@ describe 'Server' do
             @user.stub(:applications){[]}
             @application = double('Application')
             @application.stub(:save){true}
+            @user.stub(:connections){[]}
             Application.stub(:new){@application}
           end
           it 'should create an application with the name and the secret' do
@@ -348,6 +370,7 @@ describe 'Server' do
           @app_group.stub(:find_by_id){@app}
           @user = double('user')
           @user.stub(:login){'toto'}
+          @user.stub(:connections){[]}
           @user.stub(:applications).and_return(@app_group,[])
           User.stub(:find_by_login){@user}
         end

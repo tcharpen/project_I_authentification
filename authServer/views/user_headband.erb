@@ -1,0 +1,9 @@
+<h2>Welcome <%= user.login %></h2>
+<h2>You are currently connected to the following applications :</h2>
+<table>
+<% user.connections.each do |c| %>
+  <tr>
+    <td><%= c.application.name %></td>
+  </tr>
+<% end %>
+</table>

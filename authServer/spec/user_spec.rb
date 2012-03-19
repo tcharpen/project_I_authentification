@@ -17,6 +17,15 @@ describe User do
   it 'should have a password' do
     User.new.should respond_to(:password)
   end
+  it 'should have an admin flag' do
+    should respond_to(:admin)
+  end
+  it 'should have many applications' do
+    should respond_to(:applications)
+  end
+  it 'should have many connections' do
+    should respond_to(:connections)
+  end
   it 'User should be able to find a user' do
     User.should respond_to(:find_user)
   end

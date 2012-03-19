@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
+<% content_for :head do %>
   <title>User registration</title>
-</head>
-<body>
+<% end %>
 
-<h1>Registration</h1>
+<h2>Registration</h2>
 
 <form action="/users" method="post">
     <label>Login</label><br/>
@@ -14,6 +11,3 @@
     <input name="password" size="30" type="password"/><br/>
     <input name="commit" type="submit" value="Submit"/>
 </form>
-
-</body>
-</html>

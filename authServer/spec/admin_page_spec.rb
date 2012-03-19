@@ -12,6 +12,7 @@ describe 'Applications administrator page' do
     @app_2.stub(:id){2}
     @app_array = [@app_1,@app_2]
     @user = double('user')
+    @user.stub(:connections){[]}
     @user.stub(:applications){@app_array}
     @user.stub(:admin){true}
     @user.stub(:login){'toto'}

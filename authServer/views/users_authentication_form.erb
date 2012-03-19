@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
+<% content_for :head do %>
   <title>User authentication</title>
-</head>
-<body>
+<% end  %>
 
-<h1>Authentication</h1>
+<h2>Authentication</h2>
 
 <form action="/sessions" method="post">
     <label>Login</label><br/>
@@ -18,7 +15,3 @@
     <input name="app_name" type="hidden" value="<%=@appname%>"/>
     <% end %>
 </form>
-
-</body>
-</html>
- 

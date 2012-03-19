@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
+<% content_for :head do %>
   <title>Application registration</title>
-</head>
-<body>
+<% end %>
 
-<h1>Application Registration</h1>
+<h2>Application Registration</h2>
 
 <form action="/applications" method="post">
     <label>Name</label><br/>
@@ -14,7 +11,3 @@
     <input name="secret" size="30" type="text"/><br/>
     <input name="commit" type="submit" value="Submit"/>
 </form>
-
-</body>
-</html>
- 

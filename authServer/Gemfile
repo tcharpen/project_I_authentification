@@ -1,6 +1,7 @@
 source :rubygems
 
 gem 'sinatra'
+gem 'sinatra-contrib'
 gem 'guard'
 gem 'guard-rspec'
 gem 'rspec'

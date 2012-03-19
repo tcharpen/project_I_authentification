@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>	
+<%= yield_content :head %>
+</head>
+<body>
+<% if defined? user %>
+<%= erb :user_headband, :locals => { :user => user } %>
+<% end %>
+ 
+<%= yield %>
+
+</body>
+</html>
+ 

@@ -1,6 +1,8 @@
 require 'sinatra'
+require 'sinatra/content_for'
 require_relative 'lib/user.rb'
 require_relative 'lib/application.rb'
+require_relative 'lib/connection.rb'
 require_relative 'database.rb'
 
 use Rack::Session::Pool
@@ -57,6 +59,7 @@ get '/sessions/new' do
 
   if app
     if user
+      Connection.new( :user => user, :application => app ).save
       redirect "#{params['origin']}?secret=#{app.secret}&login=#{user.login}"
     else
       @origin = params['origin']
@@ -79,6 +82,7 @@ post '/sessions' do
     if params['app_name'] && params['back_url']
       app = Application.find_by_name(params['app_name'])
       if app
+        Connection.new(:user => user, :application => app).save
         redirect "#{params['back_url']}?secret=#{app.secret}&login=#{user.login}"
       else
         redirect "/protected"

@@ -2,6 +2,7 @@ require 'active_record'
 
 class User < ActiveRecord::Base
   has_many :applications
+  has_many :connections
 
   validates :login, :format => { :with => %r{^\w{4,15}$} }
   validates :login, :uniqueness => true

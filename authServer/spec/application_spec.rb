@@ -27,6 +27,9 @@ describe Application do
   it 'should have a user' do
     should respond_to(:user)
   end
+  it 'should have many connections' do
+    should respond_to(:connections)
+  end
   describe 'name' do
     it 'should always exists' do
       @name = ''

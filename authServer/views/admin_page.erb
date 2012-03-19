@@ -1,12 +1,7 @@
-<!DOCTYPE html>
-<html>
-<head>
+<% content_for :head do %>
   <title>Applications administrator page</title>
-</head>
-<body>
- 
-<h1>Welcome <%= user.login %></h1>
-
+<% end %>
+<h2>You have registered the following applications : </h2>
 <table>
 <% user.applications.each do |a| %>
 <tr>
@@ -25,11 +20,4 @@
 <form action="/applications/new" method="get">
 <input type="submit" value="Add application">
 </form>
-
-</body>
-</html>
- 
-
-</body>
-</html>
  
