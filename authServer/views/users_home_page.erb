@@ -2,4 +2,28 @@
   <title>Private home page</title>
 <% end %>
 
- 
+<% if user.admin %>
+<% if user.applications.length > 0 %>
+You have registered the following applications :<br/><br/>
+<table>
+<tr>
+<td><u><b>Name</b></u></td>
+<td><u><b>Secret</b></u></td>
+</tr>
+<% user.applications.each do |a| %>
+<tr>
+  <td><%= a.name %></td>
+  <td><%= a.secret %></td>
+  <td>
+    <form action="/applications/<%= a.id %>" method="post">
+      <input type="hidden" name="_method" value="delete">
+      <input type="submit" value="Delete">
+    </form>
+  </td>
+</tr>
+<% end %>
+</table><br/>
+<% end %>
+
+<form action="/applications/new" method="get"><input type="submit" value="Add application"></form>
+<% end %>

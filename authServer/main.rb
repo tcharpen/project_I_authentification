@@ -5,9 +5,20 @@ require_relative 'lib/application.rb'
 require_relative 'lib/connection.rb'
 require_relative 'database.rb'
 
-use Rack::Session::Pool
+use Rack::Session::Pool, :expire_after => 2592000
 
 enable :method_override # override any post form which contains _method
+
+helpers do
+  def current_user
+    User.find_by_login(session['current_user'])
+  end
+  def send_form_if_user_unknown
+    user = current_user
+    halt erb :users_authentication_form unless user
+    user
+  end
+end
 
 #############
 ##Home Page##
@@ -17,24 +28,9 @@ get '/' do
   erb :home_page
 end
 
-##################
-##Protected zone##
-##################
-
-get '/protected' do
-  user = User.find_by_login(session['current_user'])
-  if user.nil?
-    erb :users_authentication_form
-  elsif user.admin
-    erb :admin_page, :locals => {:user => user}
-  else
-    erb :users_home_page, :locals => {:user => user}
-  end    
-end
-
-################
-##Registration##
-################
+#########
+##USERS##
+#########
 
 get '/users/new' do
   erb :users_registration_form
@@ -49,12 +45,22 @@ post '/users' do
   end
 end
 
-##################
-##Authentication##
-##################
+get '/users/:id' do
+  user = current_user
+
+  if user && user.id == params[:id]
+    erb :users_home_page, :locals => {:user => user}
+  else
+    erb :users_authentication_form
+  end
+end
+
+############
+##SESSIONS##
+############
 
 get '/sessions/new' do
-  user = User.find_by_login(session['current_user'])
+  user = current_user
   app = Application.find_by_name(params['appname'])
 
   if app
@@ -96,34 +102,31 @@ post '/sessions' do
   end
 end
 
-############################
-##Application registration##
-############################
+################
+##APPLICATIONS##
+################
 
 get '/applications/new' do
-  user = User.find_by_login(session['current_user'])
-  halt erb :users_authentication_form unless user
+  user = send_form_if_user_unknown
 
   erb :applications_registration_form
 end
 
 post '/applications' do
-  user = User.find_by_login(session['current_user'])
-  halt erb :users_authentication_form unless user
+  user = send_form_if_user_unknown
 
   application = Application.new(:name => params['name'], :secret => params['secret'], :user => user)
   if application.save
-    erb :admin_page, :locals => { :user => user }
+    erb :users_home_page, :locals => { :user => user }
   else
     erb :applications_registration_form
   end
 end
 
 delete "/applications/:id" do
-  user = User.find_by_login(session['current_user'])
-  halt erb :users_authentication_form unless user
+  user =send_form_if_user_unknown    
   
   app = user.applications.find_by_id(params[:id])
   app.delete if app
-  erb :admin_page, :locals => { :user => user }
+  erb :users_home_page, :locals => { :user => user }
 end

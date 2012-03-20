@@ -2,7 +2,7 @@
   <title>User authentication</title>
 <% end  %>
 
-<h2>Authentication</h2>
+Authentication :<br/><br/>
 
 <form action="/sessions" method="post">
     <label>Login</label><br/>
@@ -10,7 +10,7 @@
     <label>Password</label><br/>
     <input name="password" size="30" type="password"/><br/>
     <input name="commit" type="submit" value="Submit"/>
-    <% if @origin %>
+    <% if @origin && @appname %>
     <input name="back_url" type="hidden" value="<%=@origin%>"/>
     <input name="app_name" type="hidden" value="<%=@appname%>"/>
     <% end %>
