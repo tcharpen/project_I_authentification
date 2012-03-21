@@ -5,7 +5,8 @@ require_relative 'lib/application.rb'
 require_relative 'lib/connection.rb'
 require_relative 'database.rb'
 
-use Rack::Session::Pool, :expire_after => 2592000
+use Rack::Session::Pool, :key => 'authserver.session',
+                         :expire_after => 2592000
 
 enable :method_override # override any post form which contains _method
 
@@ -48,7 +49,7 @@ end
 get '/users/:id' do
   user = current_user
 
-  if user && user.id == params[:id]
+  if user && user.id.to_s == params[:id]
     erb :users_home_page, :locals => {:user => user}
   else
     erb :users_authentication_form
@@ -91,10 +92,10 @@ post '/sessions' do
         Connection.new(:user => user, :application => app).save
         redirect "#{params['back_url']}?secret=#{app.secret}&login=#{user.login}"
       else
-        redirect "/protected"
+        redirect "/users/#{user.id}"
       end
     else
-      redirect "/protected"
+      redirect "/users/#{user.id}"
     end
 
   else

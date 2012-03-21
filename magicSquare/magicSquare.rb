@@ -1,6 +1,6 @@
 require 'sinatra'
 
-use Rack::Session::Pool
+use Rack::Session::Pool, :key => 'magicsquare.session'
 
 set :s_auth_url, 'http://serverauth'
 set :s_auth_port, 4567

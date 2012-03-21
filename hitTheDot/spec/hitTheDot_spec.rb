@@ -46,7 +46,7 @@ describe 'Hit The Dot' do
       it 'should create a session by sending a cookie' do
         get "/protected?login=toto&secret=#{app.settings.secret}"
         last_response.header['Set-Cookie'].should_not be_nil
-        last_response.header['Set-Cookie'].should match %r{rack.session=.+}
+        last_response.header['Set-Cookie'].should match %r{hitthedot.session=.+}
 
       end
     end

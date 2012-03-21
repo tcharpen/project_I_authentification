@@ -1,0 +1,64 @@
+Projet serveur d'authentifacation Charpentier Thomas
+
+Configuration nécessaire :
+
+le fichier etc/hosts doit contenir les alias suivant :
+
+127.0.0.1  serverauth
+127.0.0.1  hitthedot
+127.0.0.1  magicsquare
+
+
+Lancement des serveurs :
+
+Dans le dossier authServer :
+     - lancez init_db.rb (pour réinitialiser le contenu de la database)
+     - lancez main.rb
+
+Dans le dossier hitTheDot :
+     - lancez hitTheDot.rb
+
+Dans le dossier magicSqurae : 
+     - lancez magicSquare.rb
+
+
+Scénario :
+
+Enregistrement de deux applications :
+
+1) Rendez-vous sur la page d'acceuil à l'adresse : http://serverauth:4567/
+2) Atteignez la page d'authentification avec le lien "Log In"
+3) Connectez-vous avec le compte de l'administrateur : (ce compte existe déjà)
+   		  - login : admin
+		  - pwd   : admin
+4) Ajoutez les deux applications suivantes au service d'authentification :
+   	       	  - Hit the Dot :
+		    	- nom    : hitthedot
+			- secret : hitthedotsecret
+		  - Magic Square
+		    	- nom    : magicsquare
+			- secret : magicsquaresecret
+
+Enregistrement d'un utilisateur :
+
+1) Supprimez le cookie 'authserver.session' qui identifie la session dans le serveur d'authentification
+2) Rendez-vous sur la page d'acceuil à l'adresse : http://serverauth:4567/
+3) Atteignez la page d'enregistrement avec le lien "Register"
+4) Enregistrez un utilisateur
+
+Connection à une application cliente :
+
+1) Rendez-vous sur la page d'acceuil à l'adresse : http://hitthedot:4568/
+2) L'application vous propose de jouer à un jeu, acceptez l'invitation et vous serez redirigé sur une page d'authentification
+3) Authentifiez-vous avec l'utilisateur précédemment enregistré et vous serez redirigé sur le jeu que vous aviez demandé
+
+Connection à une deuxième application cliente :
+
+1) Rendez-vous sur la page d'acceuil à l'adresse : http://magicsquare:4569/
+2) L'application vous propose de jouer à un jeu, acceptez l'invitation et vous pourrez acceder au jeu sans avoir a vous réauthentifier
+
+Liste des applications visités :
+
+1) Retournez sur le serveur d'authentification et accedez à votre espace privée
+2) Vous y trouverez les applications que vous avez visité avec votre utilisateur
+

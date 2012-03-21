@@ -57,7 +57,7 @@ describe 'Authentication server' do
   end
   describe 'get /users/:id' do
     before do
-      @id = '7'
+      @id = 7
     end
     context 'if the user is authenticated' do
       before do
@@ -223,12 +223,13 @@ describe 'Authentication server' do
         @user = double('user')
         @user.stub(:applications){[]}
         @user.stub(:login){'toto'}
+        @user.stub(:id){'7'}
         User.stub(:find_user){@user}
       end
       it 'should return a cookie' do
         User.should_receive(:find_user).with(@params['login'],@params['password']).and_return(@user)
         post '/sessions', @params
-        last_response.header['Set-Cookie'].should match %r{rack.session=}
+        last_response.header['Set-Cookie'].should match %r{authserver.session=}
       end
       context 'if the request contains app_name and back_url' do
         before do
@@ -265,19 +266,19 @@ describe 'Authentication server' do
           end
         end
         context 'if the app_name does not match an existing application' do
-          it 'should redirect to /protected' do
+          it 'should redirect to /users/:id' do
             Application.stub(:find_by_name){nil}
             post '/sessions', @params
             last_response.status.should be 302
-            last_response.header['Location'].should match %r{http://example.org/protected}
+            last_response.header['Location'].should match %r{http://example.org/users/\d}
           end
         end
       end
       context 'if the request does not contain app_name or back_url' do
-        it 'should redirect to /protected' do
+        it 'should redirect to /users/:id' do
           post '/sessions', @params
           last_response.status.should be 302
-          last_response.header['Location'].should match %r{http://example.org/protected}
+          last_response.header['Location'].should match %r{http://example.org/users/\d}
         end
       end
     end
@@ -366,7 +367,7 @@ describe 'Authentication server' do
   end
   describe 'delete /applications/:id' do
     before do
-      @id = '7'
+      @id = 7
     end
     context 'if the current session match an existing user' do
       before do
@@ -384,7 +385,7 @@ describe 'Authentication server' do
       it 'should delete the application matching the id and the user' do
         User.should_receive(:find_by_login)
         @user.should_receive(:applications).twice
-        @app_group.should_receive(:find_by_id).with(@id)
+        @app_group.should_receive(:find_by_id).with(@id.to_s)
         @app.should_receive(:delete)
         delete "/applications/#{@id}"
       end
